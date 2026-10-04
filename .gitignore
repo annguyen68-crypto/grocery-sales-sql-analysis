@@ -1,0 +1,8 @@
+# Raw data is too large for GitHub (sales.csv ~517 MB); see "How to reproduce" in README
+data/raw/
+*.zip
+
+# OS files
+Thumbs.db
+Desktop.ini
+.DS_Store
