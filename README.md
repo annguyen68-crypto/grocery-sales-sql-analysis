@@ -49,13 +49,13 @@ The KPI trees for the five scenarios are in [docs/kpi_trees](docs/kpi_trees) (wr
 
 | Scenario | Questions | SQL |
 |---|---|---|
-| 1. Revenue over time | 1.1 Total net revenue · 1.2 Monthly trend and category share · 1.3 KPI drivers by category and month | [02_analysis.sql](sql/02_analysis.sql) |
-| 2. Products | 2.1 Top 5 / bottom 5 products · 2.2 Quantity vs revenue · 2.3 Impact of product class | [02_analysis.sql](sql/02_analysis.sql) |
-| 3. Customers | 3.1 Segmentation by frequency and spend · 3.2 Repeat vs one-time customers · 3.3 AOV and basket size | [02_analysis.sql](sql/02_analysis.sql) |
-| 4. Salespeople | 4.1 Sales and orders per salesperson · 4.2 Top and bottom performers · 4.3 Stability over time | [02_analysis.sql](sql/02_analysis.sql) |
-| 5. Geography | 5.1 Revenue by city · 5.2 Volume differences · 5.3 Indicators of regional performance | [02_analysis.sql](sql/02_analysis.sql) |
+| 1. Revenue over time | 1.1 Total net revenue · 1.2 Monthly trend and category share · 1.3 KPI drivers by category and month | [scenario_1_revenue_over_time.sql](sql/02_analysis/scenario_1_revenue_over_time.sql) |
+| 2. Products | 2.1 Top 5 / bottom 5 products · 2.2 Quantity vs revenue · 2.3 Impact of product class | [scenario_2_products.sql](sql/02_analysis/scenario_2_products.sql) |
+| 3. Customers | 3.1 Segmentation by frequency and spend · 3.2 Repeat vs one-time customers · 3.3 AOV and basket size | [scenario_3_customers.sql](sql/02_analysis/scenario_3_customers.sql) |
+| 4. Salespeople | 4.1 Sales and orders per salesperson · 4.2 Top and bottom performers · 4.3 Stability over time | [scenario_4_salespeople.sql](sql/02_analysis/scenario_4_salespeople.sql) |
+| 5. Geography | 5.1 Revenue by city · 5.2 Volume differences · 5.3 Indicators of regional performance | [scenario_5_geography.sql](sql/02_analysis/scenario_5_geography.sql) |
 
-Every query in the SQL file is followed by its **Result** (numbers from the query output) and **Insight**, and each scenario ends with a summary.
+Each scenario has its own file. Every query is followed by its **Result** (numbers from the query output) and **Insight**, and each file ends with a scenario summary.
 
 Customer and city segments use quartiles: **Q1 = lowest 25%, Q4 = highest 25%** (Q1 does not mean "bought once").
 
@@ -77,7 +77,7 @@ Customer and city segments use quartiles: **Q1 = lowest 25%, Q4 = highest 25%** 
 
 ## Data cleaning
 
-All checks are in [01_cleaning.sql](sql/01_cleaning.sql), each written as **query → Result → Decision**. Raw tables are never modified; analysis runs on the view `v_sales_clean`.
+Checks are in [sql/01_cleaning](sql/01_cleaning): one file per table, then one file for keys and one for the clean view. Each check is written as **query → Result → Decision**. Raw tables are never modified; all analysis runs on the view `v_sales_clean`.
 
 | Issue | Decision |
 |---|---|
@@ -104,8 +104,23 @@ Rows in = rows out = 6,758,125 (no rows deleted).
 ```
 ├── README.md
 ├── sql/
-│   ├── 01_cleaning.sql     # Data quality checks, keys, clean view
-│   └── 02_analysis.sql     # 5 scenarios: query → Result → Insight
+│   ├── 01_cleaning/                    # Run in order
+│   │   ├── 01_overview.sql             # Row counts and data types, all tables
+│   │   ├── 02_sales.sql                # One file per table:
+│   │   ├── 03_products.sql             #   missing values, duplicates, value ranges
+│   │   ├── 04_customers.sql
+│   │   ├── 05_employees.sql
+│   │   ├── 06_categories.sql
+│   │   ├── 07_cities.sql
+│   │   ├── 08_countries.sql
+│   │   ├── 09_keys.sql                 # Orphan checks, primary and foreign keys
+│   │   └── 10_v_sales_clean.sql        # Clean view + cleaning summary
+│   └── 02_analysis/                    # One file per scenario: query → Result → Insight
+│       ├── scenario_1_revenue_over_time.sql
+│       ├── scenario_2_products.sql
+│       ├── scenario_3_customers.sql
+│       ├── scenario_4_salespeople.sql
+│       └── scenario_5_geography.sql
 └── docs/
     ├── schema.png
     └── kpi_trees/          # KPI tree for each scenario (Vietnamese)
@@ -116,4 +131,4 @@ Rows in = rows out = 6,758,125 (no rows deleted).
 1. Download the 7 CSV files from the Kaggle link above (`sales.csv` is ~500 MB, so it is not stored in this repo).
 2. Install MySQL 8 and DBeaver.
 3. Create the database `fmcg_project` and import each CSV into a table with the same name (DBeaver: right-click the database → Import Data).
-4. Run `sql/01_cleaning.sql` (checks, keys and the view `v_sales_clean`), then `sql/02_analysis.sql`.
+4. Run the files in `sql/01_cleaning` in numerical order (the last one creates the view `v_sales_clean`), then any file in `sql/02_analysis`.
