@@ -1,162 +1,119 @@
-# Grocery Sales Analysis with SQL Server
+# Grocery Sales Analysis with SQL
 
-SQL analysis of **6.7M+ sales transactions** from a multinational grocery chain (Jan – May 2018) to evaluate performance **over time, by product, by customer, by salesperson and by geography**, and turn it into actionable recommendations.
+SQL analysis of **6.76M sales transactions** from a grocery chain (1 Jan – 9 May 2018) to evaluate performance **over time, by product, by customer, by salesperson and by city**, and turn the results into recommendations.
 
-**Tools:** SQL Server (T-SQL: CTEs, window functions, aggregations) · DBeaver · Miro (metric trees)
+**Tools:** MySQL 8 (CTEs, window functions, aggregations, views, keys) · DBeaver · KPI trees for problem structuring
+**Status:** SQL analysis complete · Power BI dashboard in progress
 
-<!--
-TODO: Thêm công cụ vẽ biểu đồ khi đã chọn (Excel / Power BI / Python).
--->
+---
 
 ## Key findings
 
-<!--
-TODO: Viết phần này SAU CÙNG, khi đã phân tích xong.
-- Chọn 3–4 phát hiện quan trọng nhất, mỗi phát hiện là 1 câu in đậm + 1–2 câu có con số cụ thể.
-- Mỗi phát hiện kèm 1 biểu đồ: ![Mô tả](images/ten_file.png)
-- Tự hỏi: nếu giám đốc chỉ đọc 30 giây, họ cần biết điều gì?
--->
+**1. Revenue is flat over the period.**
+Net revenue is 4.33B (after a ~3% effective discount). Monthly totals seem to drop in February and May, but only because those months have fewer days (May has 9 days of data). Revenue per day stays at ~33.2–33.3M in every month, and every KPI tree driver (orders, units per order, average unit price) is stable within each category.
 
-**1. ...**
+**2. Product revenue is driven by price, not demand.**
+All 452 products sell almost the same volume (189,906 to 199,724 units, a 1.05x range), while revenue per product differs by 2,213x. The bottom 5 products by revenue are low-price items (0.04–1.19), not slow movers. Product `Class` has little impact: each class takes about one third of revenue.
 
-**2. ...**
+**3. Customer spend is driven by basket size.**
+Every customer buys repeatedly every month (100% monthly repeat rate, Jan–Apr), so retention is not the issue. From the lowest to the highest spend quartile, average unit price stays flat at ~50, while units per order rise from 3.66 to 21.72 and AOV from 184 to 1,116.
 
-**3. ...**
+**4. Salespeople perform almost identically.**
+All 23 salespeople sold on the same 129 days, and revenue differs by only ~2% (186.3M to 190.0M). No single driver explains the ranking, and the rank 1 and rank 23 salespeople are also the most volatile month to month, so the ranking reflects random variation.
+
+**5. Cities differ mainly by size of customer base.**
+Revenue per city ranges from 41.86M (Omaha) to 48.84M (Tucson). From the lowest to the highest revenue quartile of cities, customers per city rise from 1,000 to 1,060 and units per order from 12.87 to 13.10, while purchase frequency and average unit price stay flat.
 
 ## Recommendations
 
-<!--
-TODO: Mỗi đề xuất phải xuất phát từ một finding ở trên.
-Tự hỏi: ai sẽ thực hiện đề xuất này (Marketing, HR, quản lý vùng)? Cần thêm dữ liệu gì để kiểm chứng?
--->
+| Finding | Recommendation | Owner |
+|---|---|---|
+| Spend depends on basket size | Grow units per order with bundles, multi-buy offers and cross-selling, focused on low-spend customers | Marketing |
+| Low revenue comes from low prices | Review pricing of the lowest-priced products (e.g. 0.04) before considering delisting; they sell as often as top sellers | Category / Pricing |
+| Salesperson ranking is random | Do not use the revenue ranking alone for rewards or penalties; track orders per day and units per order, which are fair and trainable | HR / Sales |
+| Cities differ by customer base | Focus on customer acquisition in weaker cities and basket-building offers in low-UPT cities (e.g. Long Beach, Omaha) | Regional managers |
 
-- ...
+## Analysis approach
 
-## Analysis framework
-
-Each scenario starts from a **metric tree** that breaks the goal metric into MECE components, and the SQL analysis follows the two priority branches chosen on each tree.
-
-Core revenue decomposition used throughout the project:
+Each scenario starts from a **KPI tree** that breaks net sales into MECE components. The tree is split (+) by the scenario's dimension (category, product class, customer group, salesperson, city), then (×) into drivers. Two priority leaves are chosen on each tree, and the SQL tests whether they explain the differences.
 
 ```
-Net sales = Gross sales × (1 − Effective discount rate)
-Gross sales = Number of transactions × AOV
-Number of transactions = Number of buying customers × Purchase frequency
-AOV = UPT (units per transaction) × AUR (average unit retail)
+Net sales     = Gross sales × (1 − Effective discount rate)
+Gross sales   = Customers × Frequency × AOV
+AOV           = UPT (units per order) × AUR (average unit retail)
 ```
 
-<!--
-TODO: Nhúng ảnh metric tree đã hoàn chỉnh của từng tình huống, ví dụ:
-![Metric tree – Scenario 1](docs/metric_trees/scenario_1.png)
-Viết 1–2 câu: bạn khoanh 2 lá nào và vì sao.
--->
+The KPI trees for the five scenarios are in [docs/kpi_trees](docs/kpi_trees) (written in Vietnamese).
 
-## Analysis questions
+## Business questions
 
-**Scenario 1 – Revenue performance over time**
-1. What is the total net revenue (after discount), and how does it trend by month?
-2. How does each product category's share of revenue change from month to month?
+| Scenario | Questions | SQL |
+|---|---|---|
+| 1. Revenue over time | 1.1 Total net revenue · 1.2 Monthly trend and category share · 1.3 KPI drivers by category and month | [02_analysis.sql](sql/02_analysis.sql) |
+| 2. Products | 2.1 Top 5 / bottom 5 products · 2.2 Quantity vs revenue · 2.3 Impact of product class | [02_analysis.sql](sql/02_analysis.sql) |
+| 3. Customers | 3.1 Segmentation by frequency and spend · 3.2 Repeat vs one-time customers · 3.3 AOV and basket size | [02_analysis.sql](sql/02_analysis.sql) |
+| 4. Salespeople | 4.1 Sales and orders per salesperson · 4.2 Top and bottom performers · 4.3 Stability over time | [02_analysis.sql](sql/02_analysis.sql) |
+| 5. Geography | 5.1 Revenue by city · 5.2 Volume differences · 5.3 Indicators of regional performance | [02_analysis.sql](sql/02_analysis.sql) |
 
-**Scenario 2 – Product ranking and classification**
+Every query in the SQL file is followed by its **Result** (numbers from the query output) and **Insight**, and each scenario ends with a summary.
 
-3. Which are the top 5 and bottom 5 products by cumulative revenue over the period?
-4. Which products have high demand (quantity) but low revenue contribution?
-5. How does product `Class` affect overall sales performance?
-
-**Scenario 3 – Customer behaviour**
-
-6. How can customers be segmented based on two key metrics?
-7. What is the split between repeat customers and one-time buyers?
-8. What are the average order value (AOV) and basket size?
-
-**Scenario 4 – Salesperson performance**
-
-9. What are the total sales and number of transactions handled by each salesperson?
-10. Who are the top performers and underperformers?
-11. How stable is each salesperson's contribution over time?
-
-**Scenario 5 – Revenue by geography**
-
-12. What is the revenue by city and country, and which markets are strongest?
-13. How does sales volume differ across regions?
-14. Which metrics best show whether the current regional strategy is working?
-
-<!--
-TODO: Sau khi làm xong mỗi tình huống, thêm 1 mục chi tiết theo mẫu:
-
-### Scenario 1 – Revenue performance over time
-**Question:** ...
-**SQL:** [02_scenario1_revenue.sql](sql/02_scenario1_revenue.sql)
-**Result:** bảng hoặc biểu đồ
-**Insight:** ...
--->
+Customer and city segments use quartiles: **Q1 = lowest 25%, Q4 = highest 25%** (Q1 does not mean "bought once").
 
 ## Dataset
 
-The [Grocery Sales Database](https://www.kaggle.com/datasets/andrexibiza/grocery-sales-dataset) contains 7 related tables:
+[Grocery Sales Database](https://www.kaggle.com/datasets/andrexibiza/grocery-sales-dataset) on Kaggle: simulated grocery sales from 2018-01-01 to 2018-05-09, 7 related tables.
 
 | Table | Rows | Description |
 |---|---:|---|
-| `sales` | 6,758,125 | Transaction lines: product, customer, salesperson, quantity, discount, date |
+| `sales` | 6,758,125 | One row per order: product, customer, salesperson, quantity, discount, date |
 | `customers` | 98,759 | Customer profiles and city |
-| `products` | 452 | Product master data: price, category, class |
+| `products` | 452 | Price, category and class |
 | `categories` | 11 | Product categories |
 | `employees` | 23 | Salespeople |
-| `cities` | 96 | Cities and the country they belong to |
+| `cities` | 96 | Cities and their country |
 | `countries` | 206 | Countries |
 
-![Database schema](docs/Schema.png)
-
-<!--
-TODO: Kiểm tra lại link Kaggle ở trên có đúng là nguồn bạn tải dữ liệu không; nếu không, sửa hoặc ghi nguồn từ khoá học.
--->
+![Database schema](docs/schema.png)
 
 ## Data cleaning
 
-Cleaning is done in T-SQL without modifying the raw tables: `raw` tables → checks and decisions → `clean` tables/views → analysis.
+All checks are in [01_cleaning.sql](sql/01_cleaning.sql), each written as **query → Result → Decision**. Raw tables are never modified; analysis runs on the view `v_sales_clean`.
 
-Issues found so far:
+| Issue | Decision |
+|---|---|
+| `TotalPrice` is 0 in every row | Revenue rebuilt in the view: `gross = Quantity × Price`, `net = Quantity × Price × (1 − Discount)` |
+| `SalesDate` stored as text; 67,526 rows (~1%) have no date | Converted to DATETIME; missing dates kept and flagged (`has_sales_date = 0`). Used in totals, excluded only from time-based queries |
+| One row = one transaction with one product | Orders = row count; basket size measured as units per order (UPT) |
+| 16 duplicate groups, all with a missing date | Kept: likely coincidental, not true duplicates |
+| Data Dictionary glossary lists 8 categories (Northwind sample) and types that would round prices to 0 | Category names and data types taken from the actual tables |
+| Keys | No orphan IDs and no duplicate IDs, so 7 primary keys and 7 foreign keys were added |
 
-- **`TotalPrice` is 0 in every row**, so revenue is rebuilt as `Quantity × Price × (1 − Discount)`, with `Price` taken from `products`.
-- **`Discount` is a rate**, with only three values: 0, 0.1 and 0.2.
-- **The data covers 1 Jan – 9 May 2018**, so May has only 9 days; months are compared on a **per-day average** basis.
-- **67,526 rows (~1%) have no `SalesDate`.**
-- No negative quantities or prices, and no `ProductID` missing from `products`.
-
-<!--
-TODO: Với mỗi vấn đề, ghi QUYẾT ĐỊNH + LÝ DO (giống README Netflix). Các điểm còn mở:
-- 67.526 dòng thiếu SalesDate: giữ cho tổng doanh thu nhưng loại khỏi phân tích theo tháng? Hay xoá? Vì sao?
-- Trùng lặp (đã bỏ SalesID khỏi phép so sánh chưa?)
-- TransactionNumber: mỗi dòng là một đơn hàng riêng? Điều này ảnh hưởng thế nào tới AOV và basket size?
-- Khoá ngoại CustomerID, SalesPersonID, CityID → CountryID
-- categories có 11 dòng nhưng glossary chỉ có 8 ngành hàng
-- Giá thấp nhất 0,0449 so với kiểu DECIMAL(4,0) trong dictionary
-Cuối mục: bảng số dòng trước / sau.
--->
+Rows in = rows out = 6,758,125 (no rows deleted).
 
 ## Data limitations
 
-- The data appears to be **synthetic**: category shares stay almost flat across months, so findings should be read as a demonstration of the method rather than real market behaviour.
-
-<!--
-TODO: Bổ sung các giới hạn khác khi phân tích (ví dụ: chỉ có ~4 tháng, không có dữ liệu chi phí nên không tính được lợi nhuận, ...).
--->
+- **Simulated data.** Volumes, shares and rates are unusually even (e.g. a 100% monthly repeat rate, identical working days for all salespeople), so the findings demonstrate the method rather than real market behaviour.
+- **Short period.** About 4 months of data; May is a partial month (9 days), so months are compared per day.
+- **No cost data.** Profit and margin cannot be calculated; price is used only to explain revenue differences.
+- **Geography is based on customer address**, not store location. All 96 cities belong to one country, so the analysis is at city level.
+- **Product `Class` is not a price tier.** Each class contains prices from ~0 to 99, and its meaning is not documented.
+- **Repeat customers are defined within each month** (2+ orders in the same month).
 
 ## Repository structure
 
 ```
 ├── README.md
-├── docs/            # Brief, schema, data dictionary, metric trees
 ├── sql/
-│   ├── 00_setup.sql             # Create tables, BULK INSERT the CSVs
-│   ├── 01_cleaning.sql          # Data checks and clean tables/views
-│   └── 02_scenario1_revenue.sql # One file per scenario
-├── images/          # Charts used in this README
-└── data/raw/        # CSV files (not tracked, see below)
+│   ├── 01_cleaning.sql     # Data quality checks, keys, clean view
+│   └── 02_analysis.sql     # 5 scenarios: query → Result → Insight
+└── docs/
+    ├── schema.png
+    └── kpi_trees/          # KPI tree for each scenario (Vietnamese)
 ```
 
 ## How to reproduce
 
-1. Download the 7 CSV files from the dataset link above into `data/raw/` (`sales.csv` is ~500 MB, so it is not stored in this repo).
-2. Install SQL Server Developer Edition (free) and DBeaver or SSMS.
-3. Update the file paths in `sql/00_setup.sql` to your `data/raw/` folder, then run the scripts in order: `00_setup.sql` → `01_cleaning.sql` → scenario files.
+1. Download the 7 CSV files from the Kaggle link above (`sales.csv` is ~500 MB, so it is not stored in this repo).
+2. Install MySQL 8 and DBeaver.
+3. Create the database `fmcg_project` and import each CSV into a table with the same name (DBeaver: right-click the database → Import Data).
+4. Run `sql/01_cleaning.sql` (checks, keys and the view `v_sales_clean`), then `sql/02_analysis.sql`.
