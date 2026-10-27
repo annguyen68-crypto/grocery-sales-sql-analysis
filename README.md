@@ -3,7 +3,7 @@
 SQL analysis of **6.76M sales transactions** from a grocery chain (1 Jan – 9 May 2018) to evaluate performance **over time, by product, by customer, by salesperson and by city**, and turn the results into recommendations.
 
 **Tools:** MySQL 8 (CTEs, window functions, aggregations, views, keys) · DBeaver · KPI trees for problem structuring
-**Status:** SQL analysis complete · Power BI dashboard in progress
+**Status:** SQL analysis complete · Tableau dashboard in progress
 
 ---
 
@@ -58,6 +58,8 @@ The KPI trees for the five scenarios are in [docs/kpi_trees](docs/kpi_trees) (wr
 Each scenario has its own file. Every query is followed by its **Result** (numbers from the query output) and **Insight**, and each file ends with a scenario summary.
 
 Customer and city segments use quartiles: **Q1 = lowest 25%, Q4 = highest 25%** (Q1 does not mean "bought once").
+
+Customer segmentation is RFM-style on **Frequency** and **Monetary** only. Recency is left out because every customer buys again every month, so it would not separate customers.
 
 ## Dataset
 
