@@ -1,9 +1,14 @@
-# Grocery Sales Analysis with SQL
+# Grocery Sales Analysis with SQL and Tableau
 
 SQL analysis of **6.76M sales transactions** from a grocery chain (1 Jan – 9 May 2018) to evaluate performance **over time, by product, by customer, by salesperson and by city**, and turn the results into recommendations.
 
-**Tools:** MySQL 8 (CTEs, window functions, aggregations, views, keys) · DBeaver · KPI trees for problem structuring
-**Status:** SQL analysis complete · Tableau dashboard in progress
+**Tools:** MySQL 8 (CTEs, window functions, aggregations, views, keys) · DBeaver · Tableau Public · KPI trees for problem structuring
+
+**Interactive dashboard:** [View on Tableau Public](https://public.tableau.com/views/GrocerySalesPerformanceDashboard_17930345848490/Dashboard1)
+
+[![Grocery Sales Performance Dashboard](docs/dashboard.png)](https://public.tableau.com/views/GrocerySalesPerformanceDashboard_17930345848490/Dashboard1)
+
+The dashboard shows the headline KPIs, one chart for each of the five scenarios below and a Pareto chart of products. Its data comes from the outputs of the analysis queries, exported to CSV.
 
 ---
 
@@ -124,6 +129,7 @@ Rows in = rows out = 6,758,125 (no rows deleted).
 │       ├── scenario_4_salespeople.sql
 │       └── scenario_5_geography.sql
 └── docs/
+    ├── dashboard.png       # Screenshot of the Tableau dashboard
     ├── schema.png
     └── kpi_trees/          # KPI tree for each scenario (Vietnamese)
 ```
