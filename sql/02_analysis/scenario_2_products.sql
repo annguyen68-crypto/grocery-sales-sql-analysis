@@ -54,6 +54,7 @@ UNION ALL
 --   Bottom 5 (0.04-1.19 price): 8.5K-223K revenue each.
 --   All 10 products have almost the same volume:
 --   ~193K-197K units and ~14.9K-15.1K orders each.
+
 -- Insight: Revenue ranking is driven by price, not by demand.
 --   Top and bottom products sell the same quantity in the same number of
 --   orders; the 1,000x+ revenue gap comes only from the price gap.
@@ -89,6 +90,7 @@ FROM product_stats;
 -- Result: 452 products. Units sold per product range from 189,906 to 199,724
 --   (max/min = 1.05x). Net revenue per product ranges from 8,524.69 to
 --   18,868,840.18 (max/min = 2,213x).
+
 -- Insight: Demand is almost identical across all products (within ~5%), while
 --   revenue differs by more than 2,000x. Quantity sold has essentially no
 --   relationship with revenue; revenue per product is determined by price.
@@ -130,6 +132,7 @@ ORDER BY net_revenue DESC;
 --   Units per SKU (~194K) and effective discount rate (0.03) are almost identical.
 --   AUR differs: High 54.22 > Low 50.46 > Medium 48.06.
 --   Revenue share is close: High 33.77%, Low 33.61%, Medium 32.62%.
+
 -- Insight:
 --   Class has little impact on revenue. Differences in SKU count and AUR offset each other:
 --   High has the fewest SKUs but the highest AUR; Medium has the most SKUs but the lowest AUR.
@@ -197,4 +200,6 @@ SELECT * FROM v_product_abc ORDER BY cum_share;
      and AUR offsetting each other.
    - KPI tree check: SKU sold rate = 100%; the hypothesis that differences
      come from units per SKU is rejected. AUR is the driver.
+   - ABC: 56% of products bring 80% of revenue, so concentration is
+     moderate (not 80/20); class reflects price level, not demand.
 */
