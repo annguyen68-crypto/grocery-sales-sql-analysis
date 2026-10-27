@@ -13,7 +13,7 @@ SQL analysis of **6.76M sales transactions** from a grocery chain (1 Jan – 9 M
 Net revenue is 4.33B (after a ~3% effective discount). Monthly totals seem to drop in February and May, but only because those months have fewer days (May has 9 days of data). Revenue per day stays at ~33.2–33.3M in every month, and every KPI tree driver (orders, units per order, average unit price) is stable within each category.
 
 **2. Product revenue is driven by price, not demand.**
-All 452 products sell almost the same volume (189,906 to 199,724 units, a 1.05x range), while revenue per product differs by 2,213x. The bottom 5 products by revenue are low-price items (0.04–1.19), not slow movers. Product `Class` has little impact: each class takes about one third of revenue.
+All 452 products sell almost the same volume (189,906 to 199,724 units, a 1.05x range), while revenue per product differs by 2,213x. The bottom 5 products by revenue are low-price items (0.04–1.19), not slow movers. Product `Class` has little impact: each class takes about one third of revenue. An ABC analysis confirms this: 252 products (56%) bring 80% of revenue, so revenue is only moderately concentrated, not a classic 80/20. Revenue per product falls almost linearly with no long tail, and average price drops from 72.81 (class A) to 11.27 (class C).
 
 **3. Customer spend is driven by basket size.**
 Every customer buys repeatedly every month (100% monthly repeat rate, Jan–Apr), so retention is not the issue. From the lowest to the highest spend quartile, average unit price stays flat at ~50, while units per order rise from 3.66 to 21.72 and AOV from 184 to 1,116.
@@ -50,7 +50,7 @@ The KPI trees for the five scenarios are in [docs/kpi_trees](docs/kpi_trees) (wr
 | Scenario | Questions | SQL |
 |---|---|---|
 | 1. Revenue over time | 1.1 Total net revenue · 1.2 Monthly trend and category share · 1.3 KPI drivers by category and month | [scenario_1_revenue_over_time.sql](sql/02_analysis/scenario_1_revenue_over_time.sql) |
-| 2. Products | 2.1 Top 5 / bottom 5 products · 2.2 Quantity vs revenue · 2.3 Impact of product class | [scenario_2_products.sql](sql/02_analysis/scenario_2_products.sql) |
+| 2. Products | 2.1 Top 5 / bottom 5 products · 2.2 Quantity vs revenue · 2.3 Impact of product class · 2.4 Pareto / ABC analysis | [scenario_2_products.sql](sql/02_analysis/scenario_2_products.sql) |
 | 3. Customers | 3.1 Segmentation by frequency and spend · 3.2 Repeat vs one-time customers · 3.3 AOV and basket size | [scenario_3_customers.sql](sql/02_analysis/scenario_3_customers.sql) |
 | 4. Salespeople | 4.1 Sales and orders per salesperson · 4.2 Top and bottom performers · 4.3 Stability over time | [scenario_4_salespeople.sql](sql/02_analysis/scenario_4_salespeople.sql) |
 | 5. Geography | 5.1 Revenue by city · 5.2 Volume differences · 5.3 Indicators of regional performance | [scenario_5_geography.sql](sql/02_analysis/scenario_5_geography.sql) |
