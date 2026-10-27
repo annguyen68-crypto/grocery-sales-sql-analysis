@@ -136,6 +136,59 @@ ORDER BY net_revenue DESC;
 --   Class is not a price tier (Low has a higher AUR than Medium), so the label alone
 --   should not drive pricing or assortment decisions.
 
+/* ------------------------------------------------------------
+   2.4 Pareto / ABC analysis of products by net revenue
+   A = top 80% of cumulative revenue, B = next 15%, C = last 5%
+   ------------------------------------------------------------ */
+CREATE OR REPLACE VIEW v_product_abc AS
+WITH product_revenue AS (
+    SELECT
+          v.ProductID
+        , p.Price
+        , SUM(v.net_sales) AS revenue
+    FROM v_sales_clean v
+    JOIN products p ON v.ProductID = p.ProductID
+    GROUP BY v.ProductID, p.Price
+), cumulative AS (
+    SELECT
+          *
+        , SUM(revenue) OVER (ORDER BY revenue DESC, ProductID)
+          / SUM(revenue) OVER ()                       AS cum_share
+    FROM product_revenue
+)
+SELECT
+      *
+    , CASE WHEN cum_share <= 0.80 THEN 'A'
+           WHEN cum_share <= 0.95 THEN 'B'
+           ELSE 'C' END                                AS abc_class
+FROM cumulative;
+
+-- Summary: share of products vs share of revenue per class
+SELECT
+      abc_class
+    , COUNT(*)                                                    AS products
+    , ROUND(COUNT(*) / SUM(COUNT(*)) OVER () * 100, 1)            AS pct_products
+    , ROUND(SUM(revenue) / SUM(SUM(revenue)) OVER () * 100, 1)    AS pct_revenue
+    , ROUND(AVG(Price), 2)                                        AS avg_price
+FROM v_product_abc
+GROUP BY abc_class
+ORDER BY abc_class;
+
+-- Result: A = 252 products (55.8%) bring 79.9% of revenue, avg price 72.81.
+--   B = 96 products (21.2%) bring 15.0%, avg price 35.85.
+--   C = 104 products (23.0%) bring 5.1%, avg price 11.27.
+
+-- Insight: Revenue is only moderately concentrated, not a classic 80/20:
+--   it takes 56% of products to reach 80% of revenue.
+--   Average price falls sharply from A to C, while volume is almost equal
+--   across products (2.2), so ABC class here reflects price level, not demand.
+--   Class C items should be reviewed on pricing, not delisted for low sales.
+--   Revenue per product falls almost linearly from top to bottom, with no
+--   long tail, which is why the cumulative curve rises slowly.
+
+-- For the Tableau Pareto chart (export to CSV)
+SELECT * FROM v_product_abc ORDER BY cum_share;
+
 /* Scenario 2 summary
    - All 452 products sold; units per product are nearly equal (1.05x range).
    - Revenue differences come from price, not volume (2,213x revenue range);
